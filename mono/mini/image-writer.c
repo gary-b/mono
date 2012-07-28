@@ -1523,6 +1523,8 @@ asm_writer_emit_section_change (MonoImageWriter *acfg, const char *section_name,
 {
 	asm_writer_emit_unset_mode (acfg);
 #if defined(TARGET_ASM_APPLE)
+	fprintf(acfg->fp, "#APPLE_SECTION_MARKER: %s;%d\n", section_name, subsection_index);
+
 	if (strcmp(section_name, ".bss") == 0)
 		fprintf (acfg->fp, "%s\n", ".data");
 	else if (strstr (section_name, ".debug") == section_name) {
@@ -2194,11 +2196,7 @@ img_writer_destroy (MonoImageWriter *w)
 gboolean
 img_writer_subsections_supported (MonoImageWriter *acfg)
 {
-#ifdef TARGET_ASM_APPLE
-	return acfg->use_bin_writer;
-#else
 	return TRUE;
-#endif
 }
 
 FILE *
