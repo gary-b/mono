@@ -175,27 +175,13 @@ mono_xdebug_init (char *options)
 	mono_dwarf_writer_emit_base_info (xdebug_writer, mono_unwind_get_cie_program ());
 }
 
-// DEBUG OUTPUT
-static int xdb_file_count = 0;
-char *xdb_file_name;
-
 static void
 xdebug_begin_emit (MonoImageWriter **out_w, MonoDwarfWriter **out_dw)
 {
 	MonoImageWriter *w;
 	MonoDwarfWriter *dw;
 
-// OS X JIT PROTOTYPE
-#ifdef USE_BIN_WRITER
 	w = img_writer_create (NULL, TRUE);
-#else
-	// DEBUG OUTPUT
-	xdb_file_name = g_strdup_printf ("xdb-%d.s", xdb_file_count++);
-	xdebug_fp = fopen (xdb_file_name, "w");
-	//xdebug_fp = fopen ("xdb.s", "w");
-	
-	w = img_writer_create (xdebug_fp, FALSE);
-#endif
 
 	img_writer_emit_start (w);
 
@@ -204,13 +190,6 @@ xdebug_begin_emit (MonoImageWriter **out_w, MonoDwarfWriter **out_dw)
 		il_file = fopen ("xdb.il", "w");
 
 	dw = mono_dwarf_writer_create (w, il_file, il_file_line_index, FALSE);
-
-// OS X JIT PROTOTYPE
-#ifndef USE_BIN_WRITER
-	/* Emit something so the file has a text segment */
-	img_writer_emit_section_change (w, ".text", 0);
-	img_writer_emit_string (w, "");
-#endif
 
 	mono_dwarf_writer_emit_base_info (dw, mono_unwind_get_cie_program ());
 
@@ -231,9 +210,9 @@ xdebug_end_emit (MonoImageWriter *w, MonoDwarfWriter *dw, MonoMethod *method)
 
 	img_writer_emit_writeout (w);
 
-// OS X JIT PROTOTYPE
-#ifdef USE_BIN_WRITER
 	img = img_writer_get_output (w, &img_size);
+
+	img_writer_destroy (w);
 
 	if (FALSE) {
 		/* Save the symbol files to help debugging */
@@ -250,41 +229,6 @@ xdebug_end_emit (MonoImageWriter *w, MonoDwarfWriter *dw, MonoMethod *method)
 		fclose (fp);
 		g_free (file_name);
 	}
-#else
-	/* Call native assembler, linker */
-	char *command;
-	int command_ret;
-
-	// DEBUG OUTPUT
-	command = g_strdup_printf ("as -arch i386 -W -o xdb.o %s", xdb_file_name);
-	//command = g_strdup_printf ("as -arch i386 -W -o xdb.o xdb.s");
-	command_ret = system (command);
-	g_free (command);
-
-	g_assert (command_ret == 0);
-
-	command = g_strdup_printf ("gcc -m32 -dynamiclib -o xdb.dylib xdb.o");
-	command_ret = system (command);
-	g_free (command);
-
-	g_assert (command_ret == 0);
-
-	/* Read .dylib into memory */
-	FILE *fp;
-
-	//fp = fopen ("xdb.dylib", "rb");
-	fp = fopen ("xdb.o", "rb");
-
-	fseek (fp , 0 , SEEK_END);
-	img_size = ftell (fp);
-	rewind (fp);
-
-	img = (guint8*) g_malloc0 (sizeof(guint8)*img_size);
-	fread (img,1,img_size,fp);
-	fclose (fp);
-#endif
-
-	img_writer_destroy (w);
 
 	/* Register the image with GDB */
 

@@ -685,9 +685,7 @@ mono_dwarf_writer_emit_base_info (MonoDwarfWriter *w, GSList *base_unwind_progra
 
 	if (!img_writer_subsections_supported (w->w))
 		/* Can't emit line number info without subsections */
-		// DEBUG
-		//w->emit_line = FALSE;
-		w->emit_line = TRUE;
+		w->emit_line = FALSE;
 	else
 		w->emit_line = TRUE;
 
