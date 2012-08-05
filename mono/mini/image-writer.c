@@ -2193,12 +2193,6 @@ img_writer_destroy (MonoImageWriter *w)
 	g_free (w);
 }
 
-gboolean
-img_writer_subsections_supported (MonoImageWriter *acfg)
-{
-	return TRUE;
-}
-
 FILE *
 img_writer_get_fp (MonoImageWriter *acfg)
 {

@@ -75,9 +75,6 @@ mono_dwarf_writer_create (MonoImageWriter *writer, FILE *il_file, int il_file_st
 	w->il_file_line_index = il_file_start_line;
 	w->appending = appending;
 
-	if (appending)
-		g_assert (img_writer_subsections_supported (w->w));
-
 	w->fp = img_writer_get_fp (w->w);
 	w->temp_prefix = img_writer_get_temp_label_prefix (w->w);
 
@@ -683,11 +680,7 @@ mono_dwarf_writer_emit_base_info (MonoDwarfWriter *w, GSList *base_unwind_progra
 	char *s, *build_info;
 	int i;
 
-	if (!img_writer_subsections_supported (w->w))
-		/* Can't emit line number info without subsections */
-		w->emit_line = FALSE;
-	else
-		w->emit_line = TRUE;
+	w->emit_line = TRUE;
 
 	w->cie_program = base_unwind_program;
 
@@ -736,7 +729,7 @@ mono_dwarf_writer_emit_base_info (MonoDwarfWriter *w, GSList *base_unwind_progra
 	emit_int32 (w, 0); /* .debug_abbrev offset */
 	emit_byte (w, sizeof (gpointer)); /* address size */
 
-	if (img_writer_subsections_supported (w->w) && w->appending) {
+	if (w->appending) {
 		/* Emit this into a separate section so it gets placed at the end */
 		emit_section_change (w, ".debug_info", 1);
 		emit_byte (w, 0); /* close COMPILE_UNIT */
