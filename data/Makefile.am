@@ -15,7 +15,8 @@ EXTRA_DIST =  	\
 	dtrace-prelink.sh mono.web.pc.in system.web.mvc.pc.in system.web.mvc2.pc.in system.web.mvc3.pc.in aspnetwebstack.pc.in \
 	net_1_1/machine.config \
 	gdb/mono-gdb.py \
-	gdb/gdb-python.diff
+	gdb/gdb-python.diff \
+	gdb/fix-xdb.py
 
 pkgconfigdir = $(libdir)/pkgconfig
 
@@ -48,5 +49,5 @@ gdbdir = $(bindir)
 mono-sgen-gdb.py: gdb/mono-gdb.py
 	cp $< $@
 
-gdb_DATA = gdb/mono-gdb.py mono-sgen-gdb.py
+gdb_DATA = gdb/mono-gdb.py mono-sgen-gdb.py gdb/fix-xdb.py
 
